@@ -8,11 +8,11 @@
 %% Parameters 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  dimensions:  1D and 2D supported only for now 
-mapRow = 1;
+mapRow = 2;
 mapCol = 2; 
 
 %  alpha: Learning rate 
-alpha_original = 0.5;
+alpha_original = 0.1;
 % Will change over the time 
 alpha = alpha_original;
 % neighbourhood function: Gaussian only for now 
@@ -41,7 +41,7 @@ tau1 = 1000/log(sigma);
 tau2 = 1000;
 
 % batch size k, example k = 1 stochastic, 1< k < 10 mini batch, etc.
-k = 1; 
+k = 5; 
 
 % Input : Assuming 2D max dimensional input for this project
 %data = load('asf');
@@ -59,11 +59,7 @@ data = eye(data_w, data_h);
 %% Visualization 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- % Rectangular - grayscale
- imshow(som) 
- % Color map
- colormap jet
- 
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,14 +77,16 @@ x_batch = datasample(data(:)', k);
        [r,c]=find((abs(som-x))==min(min((abs(som-x)))));
        winner_node = [r, c];
        % Create a 2D Gaussian for weight update ? 
-       weight_matrix = gaussian(mapRow, mapCol, sigma, winner_node);
-      
+       %weight_matrix = gaussian(mapRow, mapCol, sigma, winner_node);
+        weight_matrix = zeros(mapRow, mapCol);
+        weight_matrix(winner_node) = 1;
        % It seems like MATLAB doesn't have matrix centered summation,
        % so traverse the SOM
       
        % Take the difference of the neurons and input vector 
-       som_temp = som - x; 
+       som_temp = (x - som)* (x-som)'; 
        som  = som + som_temp .* (alpha * weight_matrix);
+       
        sum(sum(som))
 %        for som_x = 1: mapRow
 %            for som_y = 1: mapCol
@@ -105,10 +103,12 @@ x_batch = datasample(data(:)', k);
        % Monotonically decreasing learning rate .
        alpha = alpha_original * exp(-i/tau2);
        % Monotonically decreasing sigma neighborhood size for gaussian
-        sigma = sigma_original *exp(-i/tau1);
+       sigma = sigma_original *exp(-i/tau1);
    end
 end
-imshow(som)
+normA = som - min(som(:));
+normA = normA ./ max(normA(:))
+imagesc(normA)
 
 
 
